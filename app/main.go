@@ -22,11 +22,24 @@ func main() {
 		os.Exit(1)
 	}
 	conn, err := l.Accept()
+	defer conn.Close()
 	if err != nil {
 		fmt.Println("Error accepting connection: ", err.Error())
 		os.Exit(1)
 	}
-	defer conn.Close()
-	// In this stage, you'll send a response with a correlation ID.
-	conn.Write([]byte{0, 0, 0, 0, 0, 0, 0, 7})
+	// Get the correlation ID from the request
+	buf := make([]byte, 12)
+	_, err = conn.Read(buf)
+	if err != nil {
+		fmt.Println("Error reading from connection: ", err.Error())
+		os.Exit(1)
+	}
+	// Send the correlation ID back to the client
+	response := make([]byte, 8)
+	copy(response[4:8], buf[8:12])
+	_, err = conn.Write(response)
+	if err != nil {
+		fmt.Println("Error writing to connection: ", err.Error())
+		os.Exit(1)
+	}
 }
