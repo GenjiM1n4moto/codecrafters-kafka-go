@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	"net"
 	"os"
@@ -35,11 +36,9 @@ func main() {
 		os.Exit(1)
 	}
 	// Send the correlation ID back to the client
-	response := make([]byte, 8)
-	copy(response[4:8], buf[8:12])
-	_, err = conn.Write(response)
-	if err != nil {
-		fmt.Println("Error writing to connection: ", err.Error())
-		os.Exit(1)
-	}
+	fmt.Printf("Received message %v (%d)", buf[8:12], int32(binary.BigEndian.Uint32(buf[8:12])))
+	resp := make([]byte, 8)
+	copy(resp, []byte{0, 0, 0, 0})
+	copy(resp[4:], buf[8:12])
+	conn.Write(resp)
 }
