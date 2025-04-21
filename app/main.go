@@ -29,7 +29,7 @@ func main() {
 		os.Exit(1)
 	}
 	// Get the correlation ID from the request
-	buf := make([]byte, 12)
+	buf := make([]byte, 2000)
 	_, err = conn.Read(buf)
 	if err != nil {
 		fmt.Println("Error reading from connection: ", err.Error())
@@ -38,7 +38,9 @@ func main() {
 	// Send the correlation ID back to the client
 	fmt.Printf("Received message %v (%d)", buf[8:12], int32(binary.BigEndian.Uint32(buf[8:12])))
 	resp := make([]byte, 8)
-	copy(resp, []byte{0, 0, 0, 0})
-	copy(resp[4:], buf[8:12])
-	conn.Write(resp)
+	copy(resp[0:4], []byte{0, 0, 0, 0})
+	copy(resp[4:8], buf[8:12])
+	fmt.Println("Sending response: ", resp[4:8])
+	_, err = conn.Write(resp)
+	conn.Close()
 }
